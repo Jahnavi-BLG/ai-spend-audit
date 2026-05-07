@@ -43,3 +43,27 @@
 **Plan for tomorrow:**
 - Complete the spend audit calculation logic
 - Start building the results page UI
+
+## Day 3 — 2026-05-08
+
+**Hours worked:** 3
+
+**What I did:**
+- Built the initial audit engine logic for calculating AI tool savings
+- Added recommendation rules based on team size and selected plans
+- Created the Results component to display audit summaries and savings
+- Connected the spend form to the audit engine and rendered results dynamically
+- Refactored pricing data structure to support calculations more easily
+
+**What I learned:**
+- Learned how data flows between React components using props and state
+- Better understood conditional rendering and dynamic UI updates
+- Realized how small data structure changes can affect the entire frontend
+
+**Blockers / what I'm stuck on:**
+- Faced issues with dropdown rendering after changing the pricing data structure
+- Spent time debugging undefined errors and fixing component mappings
+
+**Plan for tomorrow:**
+- Improve audit result UI and add more realistic recommendation logic
+- Start integrating backend storage for lead capture

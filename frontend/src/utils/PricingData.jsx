@@ -1,7 +1,22 @@
-export const toolsData = {
-    ChatGPT: ["Plus", "Team", "Enterprise"],
-    Claude: ["Free", "Pro", "Max", "Team"],
-    Cursor: ["Hobby", "Pro", "Business"],
-    Copilot: ["Individual", "Business"],
-    Gemini: ["Pro", "Ultra"],
+export const pricing = {
+    ChatGPT: {
+        Plus: 20,
+        Team: 30,
+        Enterprise: 60,
+    },
+
+    Claude: {
+        Pro: 20,
+        Team: 30,
+    },
+
+    Cursor: {
+        Pro: 20,
+        Business: 40,
+    },
+
+    Copilot: {
+        Individual: 10,
+        Business: 19,
+    },
 };

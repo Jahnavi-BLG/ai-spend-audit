@@ -1,293 +1,287 @@
 import React, { useState, useEffect } from 'react';
-import { toolsData } from '../utils/PricingData';
+import { pricing } from '../utils/PricingData'; // Make sure this matches the export name in your file
+import { auditTools } from '../utils/auditEngine';
+import Results from './Results';
 
-const TrashIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-    </svg>
-);
-
-const PlusIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-    </svg>
-);
-
-
+// A simple helper function to generate a unique ID for each tool entry
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
-const SpendForm = () => {
-    // =========================================================================
-    // STATE MANAGEMENT
-    // We use lazy initialization (passing a function to useState) so we only 
-    // read from localStorage during the very first render, improving performance.
-    // =========================================================================
+export default function SpendForm() {
+  // ==========================================
+  // 1. STATE INITIALIZATION
+  // ==========================================
+  // We use lazy initialization (passing a function to useState) so we only read 
+  // from localStorage on the first render, not every time the component updates.
 
-    // 1. Team Size State (Default: 1)
-    const [teamSize, setTeamSize] = useState(() => {
-        const saved = localStorage.getItem('spendForm_teamSize');
-        return saved ? Number(saved) : 1;
-    });
+  const [teamSize, setTeamSize] = useState(() => {
+    const saved = localStorage.getItem('spend_teamSize');
+    return saved ? Number(saved) : 1;
+  });
 
-    // 2. Primary Use Case State (Default: 'coding')
-    const [useCase, setUseCase] = useState(() => {
-        const saved = localStorage.getItem('spendForm_useCase');
-        return saved || 'coding';
-    });
+  const [useCase, setUseCase] = useState(() => {
+    const saved = localStorage.getItem('spend_useCase');
+    return saved || 'coding';
+  });
 
-    // 3. AI Tools Array State
-    // Default: One empty tool entry so the user sees a form immediately
-    const [tools, setTools] = useState(() => {
-        const saved = localStorage.getItem('spendForm_tools');
-        if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                console.error("Failed to parse tools from localStorage");
+  const [tools, setTools] = useState(() => {
+    const saved = localStorage.getItem('spend_tools');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (err) {
+        console.error("Failed to load tools from local storage", err);
+      }
+    }
+    // Default starting state: one empty tool entry
+    return [{ id: generateId(), tool: '', plan: '', spend: '', seats: 1 }];
+  });
+
+  // State to hold the results of our audit
+  const [auditData, setAuditData] = useState(null);
+
+  // ==========================================
+  // 2. LOCAL STORAGE SYNC (useEffect)
+  // ==========================================
+  // Whenever teamSize, useCase, or tools change, we save them to localStorage.
+  
+  useEffect(() => {
+    localStorage.setItem('spend_teamSize', teamSize);
+  }, [teamSize]);
+
+  useEffect(() => {
+    localStorage.setItem('spend_useCase', useCase);
+  }, [useCase]);
+
+  useEffect(() => {
+    localStorage.setItem('spend_tools', JSON.stringify(tools));
+  }, [tools]);
+
+  // ==========================================
+  // 3. HANDLERS FOR DYNAMIC TOOL LIST
+  // ==========================================
+
+  // Add a new empty tool row
+  const handleAddTool = () => {
+    setTools([...tools, { id: generateId(), tool: '', plan: '', spend: '', seats: 1 }]);
+  };
+
+  // Remove a specific tool row by its unique ID
+  const handleRemoveTool = (idToRemove) => {
+    setTools(tools.filter((t) => t.id !== idToRemove));
+  };
+
+  // Run the audit engine on our current tools
+  const handleRunAudit = () => {
+    const results = auditTools(tools);
+    setAuditData(results);
+  };
+
+  // Update a specific field inside a specific tool row
+  const handleToolChange = (id, field, value) => {
+    setTools((prevTools) =>
+      prevTools.map((t) => {
+        if (t.id === id) {
+          // Copy the old tool data and update the specific field
+          const updatedTool = { ...t, [field]: value };
+
+          // If the user changes the Tool dropdown, we must reset the Plan and Spend
+          if (field === 'tool') {
+            updatedTool.plan = '';
+            updatedTool.spend = '';
+          }
+
+          // If the user changes the Plan dropdown, auto-fill the monthly spend 
+          // based on our imported pricing data!
+          if (field === 'plan' && updatedTool.tool && pricing[updatedTool.tool]) {
+            const defaultSpend = pricing[updatedTool.tool][value];
+            if (defaultSpend !== undefined) {
+              updatedTool.spend = defaultSpend;
             }
+          }
+
+          return updatedTool;
         }
-        return [{ id: generateId(), toolName: '', planName: '', monthlySpend: 0, seats: 1 }];
-    });
+        return t; // Return other tools unchanged
+      })
+    );
+  };
 
-    // =========================================================================
-    // SIDE EFFECTS (LocalStorage Sync)
-    // Whenever our state variables change, we update localStorage so data 
-    // persists across page refreshes.
-    // =========================================================================
+  // ==========================================
+  // 4. CALCULATIONS
+  // ==========================================
+  // Calculate total monthly spend across all tools safely
+  const totalMonthlySpend = tools.reduce((total, t) => {
+    const costPerSeat = Number(t.spend) || 0; // fallback to 0 if empty
+    const numSeats = Number(t.seats) || 0;    // fallback to 0 if empty
+    return total + (costPerSeat * numSeats);
+  }, 0);
 
-    useEffect(() => {
-        localStorage.setItem('spendForm_teamSize', teamSize);
-    }, [teamSize]);
+  // ==========================================
+  // 5. RENDER UI
+  // ==========================================
+  return (
+    <>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-100 mt-10">
+      
+      {/* Header */}
+      <div className="mb-8 border-b pb-4">
+        <h2 className="text-2xl font-bold text-gray-800">AI Spend Auditor</h2>
+        <p className="text-gray-500 text-sm mt-1">Track and calculate your team's monthly AI costs.</p>
+      </div>
 
-    useEffect(() => {
-        localStorage.setItem('spendForm_useCase', useCase);
-    }, [useCase]);
+      {/* --- SECTION 1: TEAM INFO --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Total Team Size</label>
+          <input
+            type="number"
+            min="1"
+            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            value={teamSize}
+            onChange={(e) => setTeamSize(e.target.value)}
+          />
+        </div>
 
-    useEffect(() => {
-        localStorage.setItem('spendForm_tools', JSON.stringify(tools));
-    }, [tools]);
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Primary Use Case</label>
+          <select
+            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+            value={useCase}
+            onChange={(e) => setUseCase(e.target.value)}
+          >
+            <option value="coding">Software Engineering / Coding</option>
+            <option value="writing">Content Creation / Writing</option>
+            <option value="research">Research & Data Analysis</option>
+            <option value="mixed">Mixed / General Purpose</option>
+          </select>
+        </div>
+      </div>
 
-    // =========================================================================
-    // EVENT HANDLERS
-    // =========================================================================
+      {/* --- SECTION 2: AI TOOLS STACK --- */}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-4">Your AI Tools</h3>
+        
+        <div className="space-y-4">
+          {tools.map((t) => {
+            // Get available plans for this specific tool safely
+            const availablePlans = t.tool && pricing[t.tool] 
+              ? Object.keys(pricing[t.tool]) 
+              : [];
 
-    // Adds a new blank tool to our list
-    const handleAddTool = () => {
-        setTools([
-            ...tools,
-            { id: generateId(), toolName: '', planName: '', monthlySpend: 0, seats: 1 }
-        ]);
-    };
-
-    // Removes a specific tool from our list by its unique ID
-    const handleRemoveTool = (idToRemove) => {
-        setTools(tools.filter(tool => tool.id !== idToRemove));
-    };
-
-    // Updates a specific field (like 'toolName' or 'seats') for a specific tool
-    const handleToolChange = (id, field, value) => {
-        setTools(tools.map(tool => {
-            if (tool.id === id) {
-                const updatedTool = { ...tool, [field]: value };
-
-                // If the user changed the tool (e.g., from ChatGPT to Claude), we must 
-                // reset the plan because the new tool might have different plan options.
-                if (field === 'toolName') {
-                    updatedTool.planName = '';
-                }
-                return updatedTool;
-            }
-            return tool;
-        }));
-    };
-
-    // Calculate total spend automatically based on the tools array
-    const totalMonthlySpend = tools.reduce((sum, tool) => {
-        const spend = Number(tool.monthlySpend) || 0;
-        const seats = Number(tool.seats) || 1;
-        return sum + (spend * seats);
-    }, 0);
-
-    // =========================================================================
-    // RENDER HELPERS
-    // Common Tailwind classes extracted to keep the JSX clean and readable
-    // =========================================================================
-    const inputClasses = "w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 bg-white px-4 py-2.5 border transition-all duration-200 outline-none text-gray-800";
-    const labelClasses = "block text-sm font-semibold text-gray-700 mb-1.5";
-
-    return (
-        <div className="w-full max-w-5xl mx-auto p-6 md:p-8 bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 shadow-indigo-100/60">
-
-            {/* --- Header Section --- */}
-            <div className="mb-8 border-b border-gray-100 pb-6">
-                <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">AI Spend Audit</h2>
-                <p className="text-gray-500 mt-2 text-lg">Track, manage, and optimize your team's AI tool subscriptions.</p>
-            </div>
-
-            <div className="space-y-8">
-
-                {/* --- Section 1: General Team Information --- */}
-                <section className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/80">
-                    <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center">
-                        <span className="bg-indigo-600 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 text-sm shadow-md shadow-indigo-200">1</span>
-                        Team Details
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Team Size Input */}
-                        <div>
-                            <label className={labelClasses} htmlFor="teamSize">Total Team Size</label>
-                            <input
-                                id="teamSize"
-                                type="number"
-                                min="1"
-                                className={inputClasses}
-                                value={teamSize}
-                                onChange={(e) => setTeamSize(e.target.value)}
-                                placeholder="e.g., 5"
-                            />
-                        </div>
-
-                        {/* Primary Use Case Dropdown */}
-                        <div>
-                            <label className={labelClasses} htmlFor="useCase">Primary Use Case</label>
-                            <select
-                                id="useCase"
-                                className={inputClasses}
-                                value={useCase}
-                                onChange={(e) => setUseCase(e.target.value)}
-                            >
-                                <option className="bg-white text-gray-900 py-1" value="coding">Software Engineering / Coding</option>
-                                <option className="bg-white text-gray-900 py-1" value="writing">Content Creation / Writing</option>
-                                <option className="bg-white text-gray-900 py-1" value="research">Research & Data Analysis</option>
-                                <option className="bg-white text-gray-900 py-1" value="mixed">Mixed / General Purpose</option>
-                            </select>
-                        </div>
-                    </div>
-                </section>
-
-                {/* --- Section 2: Dynamic Tools Stack --- */}
-                <section>
-                    <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                            <span className="bg-indigo-600 text-white w-7 h-7 rounded-full flex items-center justify-center mr-3 text-sm shadow-md shadow-indigo-200">2</span>
-                            AI Tools Stack
-                        </h3>
-                    </div>
-
-                    <div className="space-y-4">
-                        {tools.map((tool) => {
-                            // Extract available plans for the currently selected tool (if any)
-                            const availablePlans = tool.toolName && toolsData[tool.toolName]
-                                ? toolsData[tool.toolName]
-                                : [];
-
-                            return (
-                                <div
-                                    key={tool.id}
-                                    className="group flex flex-col md:flex-row gap-4 p-5 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-300 relative"
-                                >
-                                    {/* Tool Selection Dropdown */}
-                                    <div className="flex-1">
-                                        <label className={labelClasses}>Tool</label>
-                                        <select
-                                            className={inputClasses}
-                                            value={tool.toolName}
-                                            onChange={(e) => handleToolChange(tool.id, 'toolName', e.target.value)}
-                                        >
-                                            <option className="bg-white text-gray-900" value="">Select a tool...</option>
-                                            {Object.keys(toolsData).map(toolName => (
-                                                <option className="bg-white text-gray-900" key={toolName} value={toolName}>{toolName}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Plan Selection Dropdown */}
-                                    <div className="flex-1">
-                                        <label className={labelClasses}>Plan</label>
-                                        <select
-                                            className={`${inputClasses} ${!tool.toolName ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
-                                            value={tool.planName}
-                                            onChange={(e) => handleToolChange(tool.id, 'planName', e.target.value)}
-                                            disabled={!tool.toolName} // Disable if no tool is selected
-                                        >
-                                            <option className="bg-white text-gray-900" value="">Select plan...</option>
-                                            {availablePlans.map(plan => (
-                                                <option className="bg-white text-gray-900" key={plan} value={plan}>{plan}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Monthly Spend Input */}
-                                    <div className="w-full md:w-32">
-                                        <label className={labelClasses}>Spend/Mo</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                className={`${inputClasses} pl-8`}
-                                                value={tool.monthlySpend === 0 ? '' : tool.monthlySpend}
-                                                onChange={(e) => handleToolChange(tool.id, 'monthlySpend', e.target.value)}
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Seats Input */}
-                                    <div className="w-full md:w-24">
-                                        <label className={labelClasses}>Seats</label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            className={inputClasses}
-                                            value={tool.seats}
-                                            onChange={(e) => handleToolChange(tool.id, 'seats', e.target.value)}
-                                        />
-                                    </div>
-
-                                    {/* Remove Tool Button */}
-                                    <div className="flex items-end md:pb-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTool(tool.id)}
-                                            className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            title="Remove Tool"
-                                        >
-                                            <TrashIcon />
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Add New Tool Button */}
-                    <button
-                        type="button"
-                        onClick={handleAddTool}
-                        className="mt-5 w-full md:w-auto flex items-center justify-center px-6 py-3 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-xl hover:bg-indigo-50 hover:border-indigo-400 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        <PlusIcon />
-                        Add Another Tool
-                    </button>
-                </section>
-
-                {/* --- Section 3: Summary / Total --- */}
-                <div className="mt-10 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center bg-gray-50/80 p-8 rounded-2xl shadow-inner">
-                    <div>
-                        <p className="text-gray-600 font-medium text-lg">Estimated Monthly Spend</p>
-                        <p className="text-sm text-gray-400 mt-1">Based on {tools.length} active tool(s) and assigned seats</p>
-                    </div>
-                    <div className="text-5xl font-black text-gray-900 mt-4 md:mt-0 tracking-tight">
-                        ${totalMonthlySpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        <span className="text-xl text-gray-500 font-semibold ml-2">/ mo</span>
-                    </div>
+            return (
+              <div key={t.id} className="flex flex-col md:flex-row gap-4 p-4 border border-gray-200 rounded-lg bg-white relative items-start md:items-end shadow-sm">
+                
+                {/* Tool Dropdown */}
+                <div className="flex-1 w-full">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Tool</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded-md outline-none focus:border-blue-500 bg-white text-gray-800"
+                    value={t.tool}
+                    onChange={(e) => handleToolChange(t.id, 'tool', e.target.value)}
+                  >
+                    <option value="">Select Tool...</option>
+                    {Object.keys(pricing || {}).map((toolName) => (
+                      <option key={toolName} value={toolName}>{toolName}</option>
+                    ))}
+                  </select>
                 </div>
 
-            </div>
-        </div>
-    );
-};
+                {/* Plan Dropdown */}
+                <div className="flex-1 w-full">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Plan</label>
+                  <select
+                    className={`w-full p-2 border border-gray-300 rounded-md outline-none bg-white text-gray-800 ${!t.tool ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'focus:border-blue-500'}`}
+                    value={t.plan}
+                    onChange={(e) => handleToolChange(t.id, 'plan', e.target.value)}
+                    disabled={!t.tool} // Don't let them pick a plan until they pick a tool
+                  >
+                    <option value="">Select Plan...</option>
+                    {availablePlans.map((planName) => (
+                      <option key={planName} value={planName}>{planName}</option>
+                    ))}
+                  </select>
+                </div>
 
-export default SpendForm;
+                {/* Spend Input */}
+                <div className="w-full md:w-32">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Spend/Mo ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full p-2 border border-gray-300 rounded-md outline-none focus:border-blue-500"
+                    value={t.spend}
+                    onChange={(e) => handleToolChange(t.id, 'spend', e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+
+                {/* Seats Input */}
+                <div className="w-full md:w-24">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Seats</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className="w-full p-2 border border-gray-300 rounded-md outline-none focus:border-blue-500"
+                    value={t.seats}
+                    onChange={(e) => handleToolChange(t.id, 'seats', e.target.value)}
+                  />
+                </div>
+
+                {/* Remove Button */}
+                <div className="mt-2 md:mt-0">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTool(t.id)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors font-medium text-sm border border-transparent hover:border-red-200 w-full md:w-auto"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Add Tool Button */}
+        <button
+          type="button"
+          onClick={handleAddTool}
+          className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 font-semibold rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+        >
+          + Add Another Tool
+        </button>
+      </div>
+
+      {/* --- SECTION 3: TOTAL COST --- */}
+      <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
+        <div>
+          <span className="text-gray-600 font-medium text-lg">Total Monthly Spend:</span>
+        </div>
+        <div className="text-4xl font-black text-gray-900 mt-2 md:mt-0">
+          ${totalMonthlySpend.toLocaleString()}
+        </div>
+      </div>
+
+      {/* --- SECTION 4: RUN AUDIT BUTTON --- */}
+      <div className="mt-8 flex justify-center">
+        <button
+          type="button"
+          onClick={handleRunAudit}
+          className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg w-full md:w-auto text-lg"
+        >
+          Run AI Spend Audit
+        </button>
+      </div>
+
+    </div>
+
+    {/* Conditionally render the Results component if we have data */}
+    {auditData && (
+      <div className="pb-10">
+        <Results auditData={auditData} />
+      </div>
+    )}
+    </>
+  );
+}
