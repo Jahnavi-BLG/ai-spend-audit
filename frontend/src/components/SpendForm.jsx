@@ -157,10 +157,10 @@ const SpendForm = () => {
                                 value={useCase}
                                 onChange={(e) => setUseCase(e.target.value)}
                             >
-                                <option value="coding">Software Engineering / Coding</option>
-                                <option value="writing">Content Creation / Writing</option>
-                                <option value="research">Research & Data Analysis</option>
-                                <option value="mixed">Mixed / General Purpose</option>
+                                <option className="bg-white text-gray-900 py-1" value="coding">Software Engineering / Coding</option>
+                                <option className="bg-white text-gray-900 py-1" value="writing">Content Creation / Writing</option>
+                                <option className="bg-white text-gray-900 py-1" value="research">Research & Data Analysis</option>
+                                <option className="bg-white text-gray-900 py-1" value="mixed">Mixed / General Purpose</option>
                             </select>
                         </div>
                     </div>
@@ -195,9 +195,9 @@ const SpendForm = () => {
                                             value={tool.toolName}
                                             onChange={(e) => handleToolChange(tool.id, 'toolName', e.target.value)}
                                         >
-                                            <option value="">Select a tool...</option>
+                                            <option className="bg-white text-gray-900" value="">Select a tool...</option>
                                             {Object.keys(toolsData).map(toolName => (
-                                                <option key={toolName} value={toolName}>{toolName}</option>
+                                                <option className="bg-white text-gray-900" key={toolName} value={toolName}>{toolName}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -211,9 +211,9 @@ const SpendForm = () => {
                                             onChange={(e) => handleToolChange(tool.id, 'planName', e.target.value)}
                                             disabled={!tool.toolName} // Disable if no tool is selected
                                         >
-                                            <option value="">Select plan...</option>
+                                            <option className="bg-white text-gray-900" value="">Select plan...</option>
                                             {availablePlans.map(plan => (
-                                                <option key={plan} value={plan}>{plan}</option>
+                                                <option className="bg-white text-gray-900" key={plan} value={plan}>{plan}</option>
                                             ))}
                                         </select>
                                     </div>
