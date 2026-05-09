@@ -67,3 +67,28 @@
 **Plan for tomorrow:**
 - Improve audit result UI and add more realistic recommendation logic
 - Start integrating backend storage for lead capture
+
+## Day 4 — 2026-05-09
+
+**Hours worked:** 3
+
+**What I did:**
+- Improved the audit results section with clearer recommendation cards
+- Built a lead capture form for collecting user information
+- Set up an Express backend server and created a POST API endpoint
+- Connected frontend and backend using fetch requests
+- Tested successful submission flow between React frontend and Express backend
+
+**What I learned:**
+- Learned how frontend applications communicate with backend APIs
+- Better understood handling JSON data and POST requests
+- Realized the importance of backend validation and route testing
+
+**Blockers / what I'm stuck on:**
+- Faced some confusion while configuring backend routes and handling CORS
+- Needed debugging to ensure frontend requests reached the backend correctly
+
+**Plan for tomorrow:**
+- Add AI-generated personalized summaries
+- Improve audit recommendation quality
+- Start preparing required documentation files
