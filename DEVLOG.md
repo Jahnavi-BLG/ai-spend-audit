@@ -107,3 +107,18 @@ Initially faced backend crashes due to missing OpenAI API credentials and incorr
 
 **Plan for tomorrow:**  
 Improve the audit results UI, add savings summary cards, and begin implementing shareable audit result pages with better styling and responsiveness.
+
+## Day 6 — 2026-05-10
+**Hours worked:** 3
+
+**What I did:**  
+Implemented shareable audit result pages using dynamic React routes and localStorage-based persistence. Improved audit result UI with clearer savings cards, spacing, and responsive layouts. Added better mobile responsiveness and refined the overall user flow from audit generation to result viewing. Continued expanding documentation files and clarified architecture decisions.
+
+**What I learned:**  
+Learned how dynamic routing works in React using react-router-dom. Better understood how localStorage can be used for lightweight persistence in MVP applications. Also improved my understanding of responsive UI design and component organization.
+
+**Blockers / what I'm stuck on:**  
+Faced some confusion while handling dynamic route parameters and rendering saved audit data correctly. Needed debugging to ensure audit pages loaded properly after refreshes.
+
+**Plan for tomorrow:**  
+Finalize deployment setup, complete remaining documentation files, improve test coverage, and prepare the repository for final submission.
