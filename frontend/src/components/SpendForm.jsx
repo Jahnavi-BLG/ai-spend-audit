@@ -30,6 +30,9 @@ export default function SpendForm() {
   });
 
   const [auditData, setAuditData] = useState(null);
+  
+  // State to hold the unique ID for our shareable link
+  const [shareId, setShareId] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('spend_teamSize', teamSize);
@@ -52,8 +55,23 @@ export default function SpendForm() {
   };
 
   const handleRunAudit = () => {
+    // 1. Calculate the audit results
     const results = auditTools(tools);
     setAuditData(results);
+
+    // 2. Generate a unique share ID
+    const newShareId = generateId();
+    setShareId(newShareId);
+
+    // 3. Save the specific audit snapshot to localStorage for sharing
+    // Note: In a real app, this would be saved to a database instead!
+    const sharedAudit = {
+      auditData: results,
+      tools,
+      teamSize,
+      useCase
+    };
+    localStorage.setItem(`shared_audit_${newShareId}`, JSON.stringify(sharedAudit));
   };
 
   const handleToolChange = (id, field, value) => {
@@ -219,7 +237,7 @@ export default function SpendForm() {
           </div>
         </div>
 
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex flex-col items-center gap-4">
           <button
             type="button"
             onClick={handleRunAudit}
@@ -227,6 +245,30 @@ export default function SpendForm() {
           >
             Run AI Spend Audit
           </button>
+          
+          {/* Shareable Link Section - Only shows after running an audit */}
+          {shareId && (
+            <div className="mt-4 p-4 w-full md:w-3/4 bg-indigo-50 border border-indigo-200 rounded-lg text-center animate-fade-in">
+              <p className="text-sm text-indigo-800 font-semibold mb-2">Share your audit results:</p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={`${window.location.origin}/audit/${shareId}`} 
+                  className="px-3 py-2 border border-indigo-300 rounded bg-white text-gray-700 w-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/audit/${shareId}`);
+                    alert("Link copied to clipboard!");
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-sm font-medium whitespace-nowrap w-full sm:w-auto"
+                >
+                  Copy Link
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

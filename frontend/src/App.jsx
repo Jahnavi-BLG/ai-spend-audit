@@ -1,14 +1,20 @@
 import React from "react";
-import SpendForm from "./components/SpendForm";
-import LeadCapture from "./components/LeadCapture";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import AuditPage from "./pages/AuditPage";
 
 function App() {
   return (
-    <div>
-      <SpendForm />
-
-      <LeadCapture />
-    </div>
+    // BrowserRouter wraps our entire application to enable routing
+    <BrowserRouter>
+      <Routes>
+        {/* The main route '/' renders our Home component */}
+        <Route path="/" element={<Home />} />
+        
+        {/* The dynamic route '/audit/:id' renders the shared AuditPage */}
+        <Route path="/audit/:id" element={<AuditPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
