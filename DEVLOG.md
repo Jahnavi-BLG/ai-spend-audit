@@ -92,3 +92,18 @@
 - Add AI-generated personalized summaries
 - Improve audit recommendation quality
 - Start preparing required documentation files
+
+## Day 5 — 2026-05-09
+**Hours worked:** 3
+
+**What I did:**  
+Integrated backend API functionality using Express.js. Added lead capture endpoint support and connected the frontend form submission flow to the backend using fetch requests. Implemented a personalized AI summary generation endpoint with fallback handling for API failures. Added environment variable configuration using dotenv and tested frontend-backend communication locally.
+
+**What I learned:**  
+Learned how frontend and backend applications communicate using REST APIs and POST requests. Understood how environment variables work and why API keys should never be pushed to GitHub. Also learned how async/await works in API handling and how to debug backend connection issues.
+
+**Blockers / what I'm stuck on:**  
+Initially faced backend crashes due to missing OpenAI API credentials and incorrect environment setup. Also encountered issues connecting frontend requests to the backend server until both services were running correctly.
+
+**Plan for tomorrow:**  
+Improve the audit results UI, add savings summary cards, and begin implementing shareable audit result pages with better styling and responsiveness.
