@@ -44,7 +44,7 @@ Companies are rapidly adopting AI tools like ChatGPT Plus, GitHub Copilot, and C
    ```bash
    npm start
    ```
-   *The backend will run on `http://localhost:5000`.*
+   *The backend will run on `https://ai-spend-backend.onrender.com`.*
 
 3. **Start the Frontend:**
    Open a new terminal window:

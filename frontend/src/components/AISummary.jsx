@@ -8,7 +8,7 @@ export default function AISummary({ totalSavings, tools, teamSize, useCase }) {
     const fetchSummary = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/summary', {
+        const response = await fetch('https://ai-spend-backend.onrender.com/api/summary', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
