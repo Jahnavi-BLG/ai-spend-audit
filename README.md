@@ -18,10 +18,7 @@ Companies are rapidly adopting AI tools like ChatGPT Plus, GitHub Copilot, and C
 - **Backend:** Node.js, Express
 - **External APIs:** OpenAI API
 
-## Screenshots
-- `[Screenshot 1 Placeholder: Landing Page and Input Form]`
-- `[Screenshot 2 Placeholder: Audit Results and Recommendations]`
-- `[Screenshot 3 Placeholder: AI Summary and Shareable Link View]`
+## Screen Recording: https://drive.google.com/file/d/1aYrcxxsTV0JG6iQFar3wigc7xyb3zuuB/view?usp=sharing
 
 ## Local Setup Instructions
 
@@ -53,7 +50,7 @@ Companies are rapidly adopting AI tools like ChatGPT Plus, GitHub Copilot, and C
    npm install
    npm run dev
    ```
-   *The frontend will run on `http://localhost:5173`.*
+   *The frontend will run on `https://ai-spend-audit-gdgg.onrender.com/`.*
 
 ## Deployment
 - **Frontend:** https://ai-spend-audit-gdgg.onrender.com
