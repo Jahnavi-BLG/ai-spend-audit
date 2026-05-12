@@ -93,7 +93,7 @@
 - Improve audit recommendation quality
 - Start preparing required documentation files
 
-## Day 5 — 2026-05-09
+## Day 5 — 2026-05-10
 **Hours worked:** 3
 
 **What I did:**  
@@ -108,7 +108,7 @@ Initially faced backend crashes due to missing OpenAI API credentials and incorr
 **Plan for tomorrow:**  
 Improve the audit results UI, add savings summary cards, and begin implementing shareable audit result pages with better styling and responsiveness.
 
-## Day 6 — 2026-05-10
+## Day 6 — 2026-05-11
 **Hours worked:** 3
 
 **What I did:**  

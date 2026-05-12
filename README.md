@@ -1,75 +1,71 @@
-# 💸 AI Spend Audit Tool
+# AI Spend Audit Tool
 
-## Project Summary
-The AI Spend Audit Tool is a full-stack web application designed to help teams identify wasted spending on AI subscriptions. By inputting the tools, plans, and seats they currently use, the platform analyzes their stack and provides actionable recommendations to optimize costs, complete with an AI-generated professional summary.
+## Project Overview
+A full-stack web application built for my internship assignment. The tool helps teams track, analyze, and optimize their monthly spending on various AI software subscriptions, providing actionable recommendations to save money.
 
-## Target Users
-- **Engineering Managers & CTOs** looking to optimize team budgets.
-- **Startup Founders** aiming to extend their runway by cutting unnecessary SaaS bloat.
-- **Finance Teams** wanting a clear breakdown of AI software expenditures.
-
-## Tech Stack
-- **Frontend:** React + Vite
-- **Backend:** Node.js + Express
-- **Styling:** Tailwind CSS
-- **AI Integration:** OpenAI API
-- **Routing:** React Router DOM
+## Problem Statement
+Companies are rapidly adopting AI tools like ChatGPT Plus, GitHub Copilot, and Claude. However, tracking these licenses across different departments is difficult. This often leads to wasted money on unused seats, overlapping tool capabilities, or paying for expensive enterprise plans when smaller pro plans would suffice. This project provides a quick, interactive way to audit that spend and surface immediate cost-saving opportunities.
 
 ## Features
-- 📊 **Dynamic Cost Calculator:** Add multiple tools, plans, and seats to see total monthly spend.
-- 🤖 **AI-Powered Insights:** Generates a personalized executive summary of your spending habits using OpenAI.
-- 🔗 **Shareable Audits:** Generate unique URLs to easily share your audit results with team members.
-- ⚡ **Instant Recommendations:** Built-in engine suggests cheaper plans or consolidation opportunities based on current pricing logic.
-- 💾 **Local Persistence:** Your progress is saved locally so you don't lose data on refresh.
+- **Dynamic Input Form:** Add multiple AI tools, specify the plan type, and input the number of seats to calculate the total monthly spend.
+- **Rules-Based Audit Engine:** Compares the user's current tool stack against predefined logic to suggest plan downgrades or tool consolidations.
+- **AI-Generated Summary:** Integrates with the OpenAI API to generate a brief, professional executive summary of the audit results.
+- **Shareable Links:** Generates a unique, read-only URL of the audit results to easily share findings with teammates or managers.
+- **Lead Capture Form:** A built-in waitlist form to collect emails from interested users.
+
+## Tech Stack
+- **Frontend:** React, Vite, Tailwind CSS, React Router DOM
+- **Backend:** Node.js, Express
+- **External APIs:** OpenAI API
 
 ## Screenshots
-*(Add screenshots here)*
-- [Screenshot 1 Placeholder: Homepage & Input Form]
-- [Screenshot 2 Placeholder: Audit Results & Recommendations]
-- [Screenshot 3 Placeholder: AI Summary & Shareable Link]
+- `[Screenshot 1 Placeholder: Landing Page and Input Form]`
+- `[Screenshot 2 Placeholder: Audit Results and Recommendations]`
+- `[Screenshot 3 Placeholder: AI Summary and Shareable Link View]`
 
 ## Local Setup Instructions
 
-**1. Clone the repository**
-```bash
-git clone <your-repo-url>
-cd ai-spend-audit
-```
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd ai-spend-audit
+   ```
 
-**2. Backend Setup**
-```bash
-cd backend
-npm install
-```
-Create a `.env` file in the `backend` folder and add your OpenAI API key:
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-```
-Start the backend server:
-```bash
-npm start
-```
+2. **Start the Backend:**
+   ```bash
+   cd backend
+   npm install
+   ```
+   Create a `.env` file in the `backend` directory and add your OpenAI key:
+   ```env
+   OPENAI_API_KEY=your_api_key_here
+   ```
+   Start the server:
+   ```bash
+   npm start
+   ```
+   *The backend will run on `http://localhost:5000`.*
 
-**3. Frontend Setup**
-Open a new terminal window:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The application will be running at `http://localhost:5173`.
+3. **Start the Frontend:**
+   Open a new terminal window:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   *The frontend will run on `http://localhost:5173`.*
 
 ## Deployment
-- **Frontend URL:** [Placeholder for Netlify/Vercel link]
-- **Backend URL:** [Placeholder for Render/Heroku link]
+- **Frontend:** [Link to Vercel/Netlify Deployment]
+- **Backend:** [Link to Render/Heroku Deployment]
 
 ## Architecture Summary
-The app uses a decoupled Client-Server architecture. The React frontend handles all user interactions, form state, and dynamic rendering. It communicates with the Express backend via REST API calls, primarily to fetch the AI-generated summary and capture leads. Audit data for sharing is temporarily stored in the browser's `localStorage` to keep the application lightweight and fast.
+The application follows a decoupled client-server architecture. The React frontend handles state management and runs the audit calculations locally to ensure a fast, responsive user experience. The Express backend serves primarily as a secure proxy to interact with the OpenAI API, preventing the API key from being exposed on the client side. For the shareable link feature, audit data is temporarily stored in the browser's `localStorage` rather than a database to keep the architecture simple for the scope of this assignment.
 
-## 5 Important Technical & Product Tradeoffs
-1. **`localStorage` vs. Database for Sharing:** I chose to use `localStorage` to generate shareable links instead of setting up a database. *Tradeoff:* It makes the app incredibly fast and beginner-friendly to set up, but links are currently device-specific and not globally persistent.
-2. **Hardcoded Pricing Engine vs. External API:** The pricing data is hardcoded in a utility file (`PricingData.js`). *Tradeoff:* Easy to modify and guarantees zero latency, but requires manual updates when AI companies change their pricing.
-3. **Frontend-heavy Calculation:** The audit engine logic runs entirely on the client side. *Tradeoff:* Saves backend compute resources and provides instant feedback, but exposes the audit logic to the client.
-4. **Minimal Backend:** The Express server is intentionally kept very lightweight, only acting as a proxy for the OpenAI API and a temporary in-memory lead database. *Tradeoff:* Reduces complexity, but means lead data is lost on server restart.
-5. **Tailwind CSS vs. Custom CSS:** Used Tailwind for all styling. *Tradeoff:* Faster development speed and consistent design system, but clutters the JSX slightly compared to separate CSS files.
+## Engineering & Product Tradeoffs
+
+1. **Local Storage vs. Database:** I chose to use `localStorage` to save shareable audit links instead of standing up a database like MongoDB. This made development faster and kept the codebase simple, but it means shared links only work on the specific device/browser where the audit was created.
+2. **Client-Side Auditing:** The logic that calculates savings runs entirely on the frontend rather than the backend. This reduces server load and makes the UI feel instant, but it means the audit rules are exposed to the client.
+3. **Hardcoded Pricing Data:** The pricing rules and tool plans are stored in a static JavaScript file. While this guarantees zero latency for the user, it requires manual code updates if a company changes their pricing tiers.
+4. **Minimal Backend State:** The Express server only handles the OpenAI integration and maintains a temporary in-memory array for lead capture. I traded off permanent data persistence (leads are lost on server restart) for architectural simplicity to meet the assignment requirements.
+5. **Tailwind CSS vs. CSS Modules:** I opted for Tailwind CSS to speed up styling and maintain a consistent design system without writing custom CSS, accepting the tradeoff that the JSX components are a bit more cluttered with utility classes.
