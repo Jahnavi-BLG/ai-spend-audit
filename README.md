@@ -56,8 +56,8 @@ Companies are rapidly adopting AI tools like ChatGPT Plus, GitHub Copilot, and C
    *The frontend will run on `http://localhost:5173`.*
 
 ## Deployment
-- **Frontend:** [Link to Vercel/Netlify Deployment]
-- **Backend:** [Link to Render/Heroku Deployment]
+- **Frontend:** https://ai-spend-audit-gdgg.onrender.com
+- **Backend:** https://ai-spend-backend.onrender.com
 
 ## Architecture Summary
 The application follows a decoupled client-server architecture. The React frontend handles state management and runs the audit calculations locally to ensure a fast, responsive user experience. The Express backend serves primarily as a secure proxy to interact with the OpenAI API, preventing the API key from being exposed on the client side. For the shareable link feature, audit data is temporarily stored in the browser's `localStorage` rather than a database to keep the architecture simple for the scope of this assignment.
